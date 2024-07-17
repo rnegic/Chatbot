@@ -2,6 +2,9 @@ import { NextFunction, Response, Request } from 'express';
 import User from '../models/User.js';
 import { hash, compare } from 'bcrypt';
 import { error } from 'console';
+import { createToken } from '../utils/token-manager.js';
+import exp from 'constants';
+import { COOKIE_NAME } from '../utils/contants.js';
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -14,7 +17,7 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 
         return res.status(400).json({ message: "Error", cause: error.message });
     }
-}
+};
 
 export const userSignup = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -24,6 +27,25 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
         const hashedPassword = await hash(password, 10);
         const user = new User({ name, email, password: hashedPassword });
         await user.save();
+
+        res.clearCookie(COOKIE_NAME, {
+            domain: "localhost",
+            httpOnly: true,
+            signed: true,
+            path: "/",
+        });
+
+        const token = createToken(user._id.toString(), user.email, "7d");
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 7);
+
+        res.cookie(COOKIE_NAME, token, {
+            path: "/",
+            domain: "localhost",
+            expires,
+            httpOnly: true,
+            signed: true,
+        });
 
         return res.status(201).json({ message: "Success", id: user._id.toString(), password: user.password.toString() });
     }
@@ -46,6 +68,26 @@ export const userSignin = async (req: Request, res: Response, next: NextFunction
         if (!isPasswordCorrect) {
             return res.status(403).send("Incorrect password");
         }
+
+        res.clearCookie(COOKIE_NAME, {
+            domain: "localhost",
+            httpOnly: true,
+            signed: true,
+            path: "/",
+        });
+
+        const token = createToken(user._id.toString(), user.email, "7d");
+        const expires = new Date();
+        expires.setDate(expires.getDate() + 7);
+
+        res.cookie(COOKIE_NAME, token, {
+            path: "/",
+            domain: "localhost",
+            expires,
+            httpOnly: true,
+            signed: true,
+        });
+
         return res.status(200).json({ message: "Signed in!", id: user._id.toString() });
     }
     catch (error) {
