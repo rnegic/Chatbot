@@ -33,12 +33,12 @@ export const userSignup = async (req: Request, res: Response, next: NextFunction
 
         return res.status(400).json({ message: "Error", cause: error.message });
     }
-}
+};
 
 export const userSignin = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email, });
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).send("User is not registered");
         }
@@ -46,8 +46,7 @@ export const userSignin = async (req: Request, res: Response, next: NextFunction
         if (!isPasswordCorrect) {
             return res.status(403).send("Incorrect password");
         }
-
-        return res.status(200).send("Signed in!").json({ id: user._id.toString() });
+        return res.status(200).json({ message: "Signed in!", id: user._id.toString() });
     }
     catch (error) {
 
@@ -55,4 +54,4 @@ export const userSignin = async (req: Request, res: Response, next: NextFunction
 
         return res.status(400).json({ message: "Error", cause: error.message });
     }
-}
+};

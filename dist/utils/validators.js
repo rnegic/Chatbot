@@ -14,9 +14,12 @@ export const validate = (validations) => {
         return res.status(422).json({ errors: errors.array() });
     };
 };
-export const signupValidator = [
-    body("name").notEmpty().withMessage('Name is required.'),
+export const signinValidator = [
     body("email").trim().isEmail().withMessage('Email is wrong.'),
     body("password").trim().isLength({ min: 6 }).withMessage('Password should contain 6 characters.'),
+];
+export const signupValidator = [
+    body("name").notEmpty().withMessage('Name is required.'),
+    ...signinValidator
 ];
 //# sourceMappingURL=validators.js.map
