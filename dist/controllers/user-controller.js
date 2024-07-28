@@ -37,7 +37,7 @@ export const userSignup = async (req, res, next) => {
             httpOnly: true,
             signed: true,
         });
-        return res.status(201).json({ message: "Success", id: user._id.toString(), password: user.password.toString() });
+        return res.status(201).json({ message: "Success", name: user.name, email: user.email });
     }
     catch (error) {
         console.log(error);
@@ -71,7 +71,45 @@ export const userSignin = async (req, res, next) => {
             httpOnly: true,
             signed: true,
         });
-        return res.status(200).json({ message: "Signed in!", id: user._id.toString() });
+        return res.status(200).json({ message: "Signed in!", name: user.name, email: user.email });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(400).json({ message: "Error", cause: error.message });
+    }
+};
+export const verifyUser = async (req, res, next) => {
+    try {
+        const user = await User.findById(res.locals.jwtData.id);
+        if (!user) {
+            return res.status(401).send("User is not registered or token is malfunctioned");
+        }
+        if (user._id.toString() !== res.locals.jwtData.id) {
+            return res.status(401).send("Permissions didn't match");
+        }
+        return res.status(200).json({ message: "OK", name: user.name, email: user.email });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(400).json({ message: "Error", cause: error.message });
+    }
+};
+export const userLogout = async (req, res, next) => {
+    try {
+        const user = await User.findById(res.locals.jwtData.id);
+        if (!user) {
+            return res.status(401).send("User not registered OR Token malfunctioned");
+        }
+        if (user._id.toString() !== res.locals.jwtData.id) {
+            return res.status(401).send("Permissions didn't match");
+        }
+        res.clearCookie(COOKIE_NAME, {
+            httpOnly: true,
+            domain: "localhost",
+            signed: true,
+            path: "/",
+        });
+        return res.status(200).json({ message: "OK", name: user.name, email: user.email });
     }
     catch (error) {
         console.log(error);
